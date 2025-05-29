@@ -24,6 +24,7 @@ export privatkey=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/Private key/ {pr
 export shortsid=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/shortsid/ {print $2}')
 
 # Создаем файл конфигурации Xray
+touch /usr/local/etc/xray/config.json
 cat << EOF > /usr/local/etc/xray/config.json
 {
     "log": {
@@ -286,12 +287,8 @@ cat << 'EOF' > $HOME/help
 
     /usr/local/etc/xray/config.json
 
-
-
 Команда для перезагрузки ядра Xray:
 
     systemctl restart xray
 
-
-    
 EOF
