@@ -295,6 +295,3 @@ cat << 'EOF' > $HOME/help
 
     
 EOF
-
-
-rm ./xray-install
