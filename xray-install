@@ -14,7 +14,8 @@ echo "bbr включен"
 fi
 
 # Устанавливаем ядро Xray
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+bash -c "$(curl -4 -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+[ -f /usr/local/etc/xray/.keys ] && rm /usr/local/etc/xray/.keys
 touch /usr/local/etc/xray/.keys
 echo "uuid: $(xray uuid)" >> /usr/local/etc/xray/.keys
 xray x25519 >> /usr/local/etc/xray/.keys
@@ -142,7 +143,7 @@ uuid=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/uuid/ {print $2}')
 pbk=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/Public key/ {print $2}')
 sid=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/shortsid/ {print $2}')
 sni=$(jq -r '.inbounds[0].streamSettings.realitySettings.serverNames[0]' /usr/local/etc/xray/config.json)
-ip=$(timeout 3 curl -s icanhazip.com)
+ip=$(timeout 3 curl -4 -s icanhazip.com)
 link="$protocol://$uuid@$ip:$port?security=reality&sni=$sni&fp=firefox&pbk=$pbk&sid=$sid&spx=/&type=tcp&flow=xtls-rprx-vision&encryption=none#vless-$ip"
 echo ""
 echo "Ссылка для подключения":
@@ -159,8 +160,8 @@ cat << 'EOF' > /usr/local/bin/newuser
 #!/bin/bash
 read -p "Введите имя пользователя (email): " email
 
-    if [[ -z "$email" ]]; then
-    echo "Имя пользователя не может быть пустым. Попробуйте снова."
+    if [[ -z "$email" || "$email" == *" "* ]]; then
+    echo "Имя пользователя не может быть пустым или содержать пробелы. Попробуйте снова."
     exit 1
     fi
 user_json=$(jq --arg email "$email" '.inbounds[0].settings.clients[] | select(.email == $email)' /usr/local/etc/xray/config.json)
@@ -177,7 +178,7 @@ pbk=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/Public key/ {print $2}')
 sid=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/shortsid/ {print $2}')
 username=$(jq --argjson index "$index" -r '.inbounds[0].settings.clients[$index].email' /usr/local/etc/xray/config.json)
 sni=$(jq -r '.inbounds[0].streamSettings.realitySettings.serverNames[0]' /usr/local/etc/xray/config.json)
-ip=$(curl -s icanhazip.com)
+ip=$(curl -4 -s icanhazip.com)
 link="$protocol://$uuid@$ip:$port?security=reality&sni=$sni&fp=firefox&pbk=$pbk&sid=$sid&spx=/&type=tcp&flow=xtls-rprx-vision&encryption=none#$username"
 echo ""
 echo "Ссылка для подключения":
@@ -253,7 +254,7 @@ pbk=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/Public key/ {print $2}')
 sid=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/shortsid/ {print $2}')
 username=$(jq --argjson index "$index" -r '.inbounds[0].settings.clients[$index].email' /usr/local/etc/xray/config.json)
 sni=$(jq -r '.inbounds[0].streamSettings.realitySettings.serverNames[0]' /usr/local/etc/xray/config.json)
-ip=$(curl -s icanhazip.com)
+ip=$(curl -4 -s icanhazip.com)
 link="$protocol://$uuid@$ip:$port?security=reality&sni=$sni&fp=firefox&pbk=$pbk&sid=$sid&spx=/&type=tcp&flow=xtls-rprx-vision&encryption=none#$username"
 echo ""
 echo "Ссылка для подключения":
