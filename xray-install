@@ -195,6 +195,7 @@ chmod +x /usr/local/bin/newuser
 # Исполняемый файл для удаления клиентов
 touch /usr/local/bin/rmuser
 cat << 'EOF' > /usr/local/bin/rmuser
+#!/bin/bash
 emails=($(jq -r '.inbounds[0].settings.clients[].email' "/usr/local/etc/xray/config.json"))
 
 if [[ ${#emails[@]} -eq 0 ]]; then
