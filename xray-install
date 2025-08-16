@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1091,SC2164,SC2034,SC1072,SC1073,SC1009
 
 function isRoot() {
 	if [ "$EUID" -ne 0 ]; then
@@ -53,7 +54,7 @@ function installXray() {
 
     # Создаем файл конфигурации Xray
     touch /usr/local/etc/xray/config.json
-    cat <<-EOF-> /usr/local/etc/xray/config.json
+    cat << 'EOF' > /usr/local/etc/xray/config.json
     {
         "log": {
             "loglevel": "warning"
