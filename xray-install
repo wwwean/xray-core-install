@@ -1,5 +1,4 @@
 #!/bin/bash
-# shellcheck disable=SC1091,SC2164,SC2034,SC1072,SC1073,SC1009
 
 function isRoot() {
 	if [ "$EUID" -ne 0 ]; then
@@ -15,7 +14,7 @@ function initialCheck() {
 }
 
 function installQuestions() {
-	echo "Welcome to the xray-core installer!"
+	echo "Welcome to the Xray-core installer!"
 	echo "The git repository is available at: https://github.com/wwwean/xray-core-install"
 	echo ""
 
@@ -324,7 +323,7 @@ EOF
 }
 
 function manageMenu() {
-	echo "Welcome to OpenVPN-install!"
+	echo "Welcome to Xray-core-install!"
 	echo "The git repository is available at: https://github.com/wwwean/xray-core-install"
 	echo ""
 	echo "It looks like Xray-core is already installed."
@@ -334,6 +333,8 @@ function manageMenu() {
 	echo "   2) Revoke existing user"
 	echo "   3) Remove OpenVPN"
 	echo "   4) Exit"
+    echo ""
+
 	until [[ $MENU_OPTION =~ ^[1-4]$ ]]; do
 		read -rp "Select an option [1-4]: " MENU_OPTION
 	done
