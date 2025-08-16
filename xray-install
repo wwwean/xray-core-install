@@ -145,7 +145,7 @@ EOF
 
     # Исполняемый файл для списка клиентов
     touch /usr/local/bin/userlist
-    cat << 'EOF' > /usr/local/bin/userlist
+    cat <<EOF > /usr/local/bin/userlist
     #!/bin/bash
     emails=($(jq -r '.inbounds[0].settings.clients[].email' "/usr/local/etc/xray/config.json"))
 
@@ -158,12 +158,12 @@ EOF
     for i in "${!emails[@]}"; do
         echo "$((i+1)). ${emails[$i]}"
     done
-    'EOF'
+EOF
     chmod +x /usr/local/bin/userlist
 
     # исполняемый файл для ссылки основного пользователя
     touch /usr/local/bin/mainuser
-    cat << 'EOF' > /usr/local/bin/mainuser
+    cat <<EOF > /usr/local/bin/mainuser
     #!/bin/bash
     protocol=$(jq -r '.inbounds[0].protocol' /usr/local/etc/xray/config.json)
     port=$(jq -r '.inbounds[0].port' /usr/local/etc/xray/config.json)
@@ -179,12 +179,12 @@ EOF
     echo ""
     echo "QR-код:"
     echo ${link} | qrencode -t ansiutf8
-    'EOF'
+EOF
     chmod +x /usr/local/bin/mainuser
 
     # Исполняемый файл для создания новых клиентов
     touch /usr/local/bin/newuser
-    cat << 'EOF' > /usr/local/bin/newuser
+    cat <<EOF > /usr/local/bin/newuser
     #!/bin/bash
     read -p "Введите имя пользователя (email): " email
 
@@ -217,12 +217,12 @@ EOF
     else
     echo "Пользователь с таким именем уже существует. Попробуйте снова." 
     fi
-    'EOF'
+EOF
     chmod +x /usr/local/bin/newuser
 
     # Исполняемый файл для удаления клиентов
     touch /usr/local/bin/rmuser
-    cat << 'EOF' > /usr/local/bin/rmuser
+    cat <<EOF > /usr/local/bin/rmuser
     #!/bin/bash
     emails=($(jq -r '.inbounds[0].settings.clients[].email' "/usr/local/etc/xray/config.json"))
 
@@ -252,12 +252,12 @@ EOF
     systemctl restart xray
 
     echo "Клиент $selected_email удалён."
-    'EOF'
+EOF
     chmod +x /usr/local/bin/rmuser
 
     # Исполняемый файл для вывода списка пользователей и создания ссылкок
     touch /usr/local/bin/sharelink
-    cat << 'EOF' > /usr/local/bin/sharelink
+    cat <<EOF > /usr/local/bin/sharelink
     #!/bin/bash
     emails=($(jq -r '.inbounds[0].settings.clients[].email' /usr/local/etc/xray/config.json))
 
@@ -290,7 +290,7 @@ EOF
     echo ""
     echo "QR-код:"
     echo ${link} | qrencode -t ansiutf8
-    'EOF'
+EOF
     chmod +x /usr/local/bin/sharelink
 
     systemctl restart xray
@@ -300,7 +300,7 @@ EOF
 
     # Создаем файл с подсказками
     touch $HOME/help
-    cat << 'EOF' > $HOME/help
+    cat <<EOF > $HOME/help
 
     Команды для управления пользователями Xray:
 
@@ -320,7 +320,7 @@ EOF
 
         systemctl restart xray
 
-    'EOF'
+EOF
 }
 
 function manageMenu() {
