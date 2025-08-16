@@ -53,7 +53,7 @@ function installXray() {
 
     # Создаем файл конфигурации Xray
     touch /usr/local/etc/xray/config.json
-    cat << EOF > /usr/local/etc/xray/config.json
+    cat << 'EOF' > /usr/local/etc/xray/config.json
     {
         "log": {
             "loglevel": "warning"
@@ -140,7 +140,7 @@ function installXray() {
             }
         }
     }
-    EOF
+    'EOF'
 
     # Исполняемый файл для списка клиентов
     touch /usr/local/bin/userlist
@@ -157,7 +157,7 @@ function installXray() {
     for i in "${!emails[@]}"; do
         echo "$((i+1)). ${emails[$i]}"
     done
-    EOF
+    'EOF'
     chmod +x /usr/local/bin/userlist
 
     # исполняемый файл для ссылки основного пользователя
@@ -178,7 +178,7 @@ function installXray() {
     echo ""
     echo "QR-код:"
     echo ${link} | qrencode -t ansiutf8
-    EOF
+    'EOF'
     chmod +x /usr/local/bin/mainuser
 
     # Исполняемый файл для создания новых клиентов
@@ -216,7 +216,7 @@ function installXray() {
     else
     echo "Пользователь с таким именем уже существует. Попробуйте снова." 
     fi
-    EOF
+    'EOF'
     chmod +x /usr/local/bin/newuser
 
     # Исполняемый файл для удаления клиентов
@@ -251,7 +251,7 @@ function installXray() {
     systemctl restart xray
 
     echo "Клиент $selected_email удалён."
-    EOF
+    'EOF'
     chmod +x /usr/local/bin/rmuser
 
     # Исполняемый файл для вывода списка пользователей и создания ссылкок
@@ -289,7 +289,7 @@ function installXray() {
     echo ""
     echo "QR-код:"
     echo ${link} | qrencode -t ansiutf8
-    EOF
+    'EOF'
     chmod +x /usr/local/bin/sharelink
 
     systemctl restart xray
@@ -319,7 +319,7 @@ function installXray() {
 
         systemctl restart xray
 
-    EOF
+    'EOF'
 }
 
 function manageMenu() {
