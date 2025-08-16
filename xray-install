@@ -341,13 +341,13 @@ function manageMenu() {
 
 	case $MENU_OPTION in
 	1)
-		newClient
+		newuser
 		;;
 	2)
-		revokeClient
+		rmuser
 		;;
 	3)
-		removeOpenVPN
+		removeXray
 		;;
 	4)
 		exit 0
