@@ -294,6 +294,37 @@ EOF
 EOF
     chmod +x /usr/local/bin/sharelink
 
+    # Script to add Firewall rules
+    NIC=$(ip -4 route ls | grep default | grep -Po '(?<=dev )(\S+)' | head -1)
+
+	echo "#!/bin/sh
+iptables -I INPUT 1 -i $NIC -p tcp --dport 443 -j ACCEPT" > /etc/iptables/add-xray-fwrules.sh
+
+	# Script to remove Firewall rules
+	echo "#!/bin/sh
+iptables -D INPUT -i $NIC -p tcp --dport 443 -j ACCEPT" > /etc/iptables/rm-xray-fwrules.sh
+
+	chmod +x /etc/iptables/add-xray-fwrules.sh
+	chmod +x /etc/iptables/rm-xray-fwrules.sh
+
+	# Handle the Firewall rules via a systemd script
+	echo "[Unit]
+Description=Firewall rules for Xray-core
+BindsTo=xray.service
+After=xray.service
+
+[Service]
+Type=oneshot
+ExecStart=/etc/iptables/add-xray-fwrules.sh
+ExecStop=/etc/iptables/rm-xray-fwrules.sh
+RemainAfterExit=yes
+
+[Install]
+RequiredBy=xray.service" > /etc/systemd/system/firewall-xray.service
+
+	# Enable service and apply Firewall rules
+	systemctl daemon-reload
+	systemctl reenable firewall-xray
     systemctl restart xray
 
     echo "Xray-core успешно установлен"
@@ -318,7 +349,6 @@ EOF
     Команда для перезагрузки ядра Xray:
 
         systemctl restart xray
-
 EOF
 }
 
@@ -326,10 +356,18 @@ function removeXray() {
 	echo ""
 	read -rp "Do you really want to remove Xray-core? [y/n]: " -e -i n REMOVE
 	if [[ $REMOVE == 'y' ]]; then
-		# Stop and remove Xray-core
+		# Stop and remove Xray-core and service
         systemctl disable xray
         systemctl stop xray
         bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ remove
+
+        # Remove Firewall related service and scripts
+		systemctl stop firewall-xray
+		systemctl disable firewall-xray
+		rm -f /etc/systemd/system/firewall-xray.service
+		systemctl daemon-reload
+		rm -f /etc/iptables/add-xray-fwrules.sh
+		rm -f /etc/iptables/rm-xray-fwrules.sh
 
 		# Cleanup
 		rm -f /usr/local/etc/xray/config.json
