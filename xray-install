@@ -158,6 +158,7 @@ EOF
 EOF
     chmod +x /etc/iptables/add-xray-fwrules.sh
     chmod +x /etc/iptables/rm-xray-fwrules.sh
+    echo "info: Added script to add/remove Firewall rules"
 
     # Handle the Firewall rules via a systemd script
     cat <<EOF | sed -r 's/^ {4}//' > /etc/systemd/system/firewall-xray.service
@@ -179,10 +180,10 @@ EOF
     # Enable service and apply Firewall rules
     systemctl daemon-reload
     systemctl reenable firewall-xray
-    systemctl restart xray
+    echo "info: The service is enabled and firewall rules are applied"
 
+    systemctl restart xray
     echo "Xray-core успешно установлен"
-    mainuser
 
     # Создаем файл с подсказками
     touch $HOME/help
@@ -199,7 +200,7 @@ EOF
 function removeXray() {
     # Удаление Xray-core
     echo ""
-    read -rp "Do you really want to remove Xray-core? [y/n]: " -e -i n REMOVE
+    read -rp "Do you really want to remove Xray-core? [y/n]: " -e -i y REMOVE
     if [[ $REMOVE == 'y' ]]; then
         # Stop and remove Xray-core and service
         systemctl disable xray
@@ -213,15 +214,12 @@ function removeXray() {
         systemctl daemon-reload
         rm -f /etc/iptables/add-xray-fwrules.sh
         rm -f /etc/iptables/rm-xray-fwrules.sh
+        echo "info: Removed Firewall related service and scripts"
 
         # Cleanup
         rm -f /usr/local/etc/xray/config.json
         rm -f /usr/local/etc/xray/.keys
-        rm -f /usr/local/bin/userlist
-        rm -f /usr/local/bin/mainuser
-        rm -f /usr/local/bin/newuser
-        rm -f /usr/local/bin/rmuser
-        rm -f /usr/local/bin/sharelink
+        echo "info: Configuration files removed"
 
         echo ""
         echo "Xray-core removed!"
@@ -271,16 +269,16 @@ function removeUser() {
     emails=($(jq -r '.inbounds[0].settings.clients[].email' /usr/local/etc/xray/config.json))
 
     if [[ ${#emails[@]} -eq 0 ]]; then
-        echo "Нет клиентов для удаления."
+        echo "Нет пользователей для удаления."
         exit 1
     fi
 
-    echo "Список клиентов:"
+    echo "Список пользователей:"
     for i in "${!emails[@]}"; do
         echo "$((i+1)). ${emails[$i]}"
     done
 
-    read -p "Введите номер клиента для удаления: " choice
+    read -p "Введите номер пользователя для удаления: " choice
     if ! [[ "$choice" =~ ^[0-9]+$ ]] || (( choice < 1 || choice > ${#emails[@]} )); then
         echo "Ошибка: номер должен быть от 1 до ${#emails[@]}"
         exit 1
@@ -290,7 +288,7 @@ function removeUser() {
     jq --arg email "$selected_email" '(.inbounds[0].settings.clients) |= map(select(.email != $email))' /usr/local/etc/xray/config.json > tmp.json && mv tmp.json /usr/local/etc/xray/config.json
 
     systemctl restart xray
-    echo "Клиент $selected_email удалён."
+    echo "Пользователь $selected_email удалён."
 }
 
 function listUser() {
@@ -301,7 +299,7 @@ function listUser() {
         echo "$((i + 1)). ${emails[$i]}"
     done
 
-    read -p "Выберите клиента: " client
+    read -p "Выберите пользователя: " client
     if ! [[ "$client" =~ ^[0-9]+$ ]] || (( client < 1 || client > ${#emails[@]} )); then
         echo "Ошибка: номер должен быть от 1 до ${#emails[@]}"
         exit 1
