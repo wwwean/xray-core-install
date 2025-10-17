@@ -338,7 +338,7 @@ function manageMenu() {
     echo "   5) Exit"
     echo ""
 
-    until [[ $MENU_OPTION =~ ^[1-7]$ ]]; do
+    until [[ $MENU_OPTION =~ ^[1-5]$ ]]; do
         read -rp "Select an option [1-5]: " MENU_OPTION
     done
 
