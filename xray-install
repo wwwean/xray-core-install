@@ -32,12 +32,16 @@ function installXray() {
     # Включаем bbr
     bbr=$(sysctl -a | grep net.ipv4.tcp_congestion_control)
     if [ "$bbr" = "net.ipv4.tcp_congestion_control = bbr" ]; then
+        echo
         echo "bbr уже включен"
+        echo
     else
         echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
         echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
         sysctl -p
+        echo
         echo "bbr включен"
+        echo
     fi
 
     # Устанавливаем ядро Xray-core
@@ -48,7 +52,7 @@ function installXray() {
     xray x25519 >> /usr/local/etc/xray/.keys
     echo "shortsid: $(openssl rand -hex 8)" >> /usr/local/etc/xray/.keys
     export uuid=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/uuid/ {print $2}')
-    export privatkey=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/Private key/ {print $2}')
+    export privatkey=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/Private key|PrivateKey/ {print $2}')
     export shortsid=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/shortsid/ {print $2}')
 
     # Создаем файл конфигурации Xray
@@ -247,7 +251,7 @@ function addUser() {
         protocol=$(jq -r '.inbounds[0].protocol' /usr/local/etc/xray/config.json)
         port=$(jq -r '.inbounds[0].port' /usr/local/etc/xray/config.json)
         uuid=$(jq --argjson index "$index" -r '.inbounds[0].settings.clients[$index].id' /usr/local/etc/xray/config.json)
-        pbk=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/Public key/ {print $2}')
+        pbk=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/Public key|PublicKey/ {print $2}')
         sid=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/shortsid/ {print $2}')
         username=$(jq --argjson index "$index" -r '.inbounds[0].settings.clients[$index].email' /usr/local/etc/xray/config.json)
         sni=$(jq -r '.inbounds[0].streamSettings.realitySettings.serverNames[0]' /usr/local/etc/xray/config.json)
