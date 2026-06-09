@@ -47,10 +47,13 @@ function installXray() {
     # Устанавливаем ядро Xray-core
     bash -c "$(curl -4 -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
     [ -f /usr/local/etc/xray/.keys ] && rm /usr/local/etc/xray/.keys
+    
     touch /usr/local/etc/xray/.keys
     echo "uuid: $(xray uuid)" >> /usr/local/etc/xray/.keys
     xray x25519 >> /usr/local/etc/xray/.keys
     echo "shortsid: $(openssl rand -hex 8)" >> /usr/local/etc/xray/.keys
+    xray vlessenc >> /usr/local/etc/xray/.keys
+    export decryption_key=$(cat /usr/local/etc/xray/.keys | awk '/Authentication: ML-KEM-768, Post-Quantum/{flag=1; next} flag' | awk -F': ' '/decryption/ {print $2}')
     export uuid=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/uuid/ {print $2}')
     export privatkey=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/Private key|PrivateKey/ {print $2}')
     export shortsid=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/shortsid/ {print $2}')
@@ -60,6 +63,8 @@ function installXray() {
     cat <<EOF | sed -r 's/^ {4}//' > /usr/local/etc/xray/config.json
     {
         "log": {
+            "access": "/var/log/xray/access.log",
+            "error": "/var/log/xray/error.log",
             "loglevel": "warning"
         },
         "routing": {
@@ -94,14 +99,14 @@ function installXray() {
                             "flow": "xtls-rprx-vision"
                         }
                     ],
-                    "decryption": "none"
+                    "decryption": "$decryption_key"
                 },
                 "streamSettings": {
-                    "network": "tcp",
+                    "network": "xhttp",
                     "security": "reality",
                     "realitySettings": {
                         "show": false,
-                        "dest": "github.com:443",
+                        "target": "github.com:443",
                         "xver": 0,
                         "serverNames": [
                             "github.com",
@@ -114,6 +119,13 @@ function installXray() {
                         "shortIds": [
                             "$shortsid"
                         ]
+                    },
+                    "xhttpSettings": {
+                        "path": "/api/v2/data",
+                        "mode": "auto",
+                        "extra": {
+                        "xPaddingBytes": "100-1000"
+                        }
                     }
                 },
                 "sniffing": {
@@ -251,12 +263,13 @@ function addUser() {
         protocol=$(jq -r '.inbounds[0].protocol' /usr/local/etc/xray/config.json)
         port=$(jq -r '.inbounds[0].port' /usr/local/etc/xray/config.json)
         uuid=$(jq --argjson index "$index" -r '.inbounds[0].settings.clients[$index].id' /usr/local/etc/xray/config.json)
+        encryption_key=$(cat /usr/local/etc/xray/.keys | awk '/Authentication: ML-KEM-768, Post-Quantum/{flag=1; next} flag' | awk -F': ' '/encryption/ {print $2}')
         pbk=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/Public key|PublicKey/ {print $2}')
         sid=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/shortsid/ {print $2}')
         username=$(jq --argjson index "$index" -r '.inbounds[0].settings.clients[$index].email' /usr/local/etc/xray/config.json)
         sni=$(jq -r '.inbounds[0].streamSettings.realitySettings.serverNames[0]' /usr/local/etc/xray/config.json)
         ip=$(curl -4 -s icanhazip.com)
-        link="$protocol://$uuid@$ip:$port?security=reality&sni=$sni&fp=firefox&pbk=$pbk&sid=$sid&spx=/&type=tcp&flow=xtls-rprx-vision&encryption=none#$username"
+        link="$protocol://$uuid@$ip:$port?security=reality&sni=$sni&fp=firefox&pbk=$pbk&sid=$sid&spx=/&type=xhttp&flow=xtls-rprx-vision&encryption=$encryption_key#$username"
         echo ""
         echo "Ссылка для подключения":
         echo "$link"
@@ -314,12 +327,13 @@ function listUser() {
     protocol=$(jq -r '.inbounds[0].protocol' /usr/local/etc/xray/config.json)
     port=$(jq -r '.inbounds[0].port' /usr/local/etc/xray/config.json) 
     uuid=$(jq --argjson index "$index" -r '.inbounds[0].settings.clients[$index].id' /usr/local/etc/xray/config.json)
+    encryption_key=$(cat /usr/local/etc/xray/.keys | awk '/Authentication: ML-KEM-768, Post-Quantum/{flag=1; next} flag' | awk -F': ' '/encryption/ {print $2}')
     pbk=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/Public key|PublicKey/ {print $2}')
     sid=$(cat /usr/local/etc/xray/.keys | awk -F': ' '/shortsid/ {print $2}')
     username=$(jq --argjson index "$index" -r '.inbounds[0].settings.clients[$index].email' /usr/local/etc/xray/config.json)
     sni=$(jq -r '.inbounds[0].streamSettings.realitySettings.serverNames[0]' /usr/local/etc/xray/config.json)
     ip=$(curl -4 -s icanhazip.com)
-    link="$protocol://$uuid@$ip:$port?security=reality&sni=$sni&fp=firefox&pbk=$pbk&sid=$sid&spx=/&type=tcp&flow=xtls-rprx-vision&encryption=none#$username"
+    link="$protocol://$uuid@$ip:$port?security=reality&sni=$sni&fp=firefox&pbk=$pbk&sid=$sid&spx=/&type=xhttp&flow=xtls-rprx-vision&encryption=$encryption_key#$username"
     echo ""
     echo "Ссылка для подключения":
     echo "$link"
@@ -328,6 +342,18 @@ function listUser() {
     echo ${link} | qrencode -t ansiutf8
 }
 
+function rtlscanner() {
+    echo "Поиск доменов для маскировки"
+    curl -4Lo RealiTLScanner https://github.com/XTLS/RealiTLScanner/releases/latest/download/RealiTLScanner-linux-amd64
+    chmod +x RealiTLScanner
+    read -p "Введите ip адрес сервера: " server_ip
+    if ! [[ "$server_ip" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]] ; then
+        echo "Ошибка: неправильный формат"
+        exit 1
+    fi
+    echo "Найдены домены:"
+    ./RealiTLScanner -addr $server_ip | awk 'match($0, /cert-domain=(.*) cert-issuer=(.*)/, arr) {print arr[1]}'
+}
 function manageMenu() {
     echo "Welcome to Xray-core-install!"
     echo "The git repository is available at: https://github.com/wwwean/xray-core-install"
@@ -339,11 +365,12 @@ function manageMenu() {
     echo "   2) List of users and sharelink"
     echo "   3) Revoke existing user"
     echo "   4) Remove Xray-core"
-    echo "   5) Exit"
+    echo "   5) RealiTLScanner"
+    echo "   6) Exit"
     echo ""
 
-    until [[ $MENU_OPTION =~ ^[1-5]$ ]]; do
-        read -rp "Select an option [1-5]: " MENU_OPTION
+    until [[ $MENU_OPTION =~ ^[1-6]$ ]]; do
+        read -rp "Select an option [1-6]: " MENU_OPTION
     done
 
     case $MENU_OPTION in
@@ -360,6 +387,9 @@ function manageMenu() {
         removeXray
         ;;
     5)
+        rtlscanner
+        ;;
+    6)
         exit 0
         ;;
     esac
@@ -372,5 +402,7 @@ initialCheck
 if [[ -f '/etc/systemd/system/xray.service' ]] && [[ -f '/usr/local/bin/xray' ]]; then
     manageMenu
 else
+
+    rtlscanner
     installXray
 fi
