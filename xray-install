@@ -352,6 +352,7 @@ function rtlscanner() {
         exit 1
     fi
     echo "Найдены домены:"
+    echo
     ./RealiTLScanner -addr $server_ip | awk 'match($0, /cert-domain=(.*) cert-issuer=(.*)/, arr) {print arr[1]}'
 }
 function manageMenu() {
@@ -402,7 +403,5 @@ initialCheck
 if [[ -f '/etc/systemd/system/xray.service' ]] && [[ -f '/usr/local/bin/xray' ]]; then
     manageMenu
 else
-
-    rtlscanner
     installXray
 fi
