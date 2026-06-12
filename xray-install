@@ -124,7 +124,7 @@ function installXray() {
                         "path": "/api/v2/data",
                         "mode": "auto",
                         "extra": {
-                        "xPaddingBytes": "100-1000"
+                            "xPaddingBytes": "100-1000"
                         }
                     }
                 },
