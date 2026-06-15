@@ -106,11 +106,11 @@ function installXray() {
                     "security": "reality",
                     "realitySettings": {
                         "show": false,
-                        "target": "github.com:443",
+                        "target": "max.ru:443",
                         "xver": 0,
                         "serverNames": [
-                            "github.com",
-                            "www.github.com"
+                            "max.ru",
+                            "www.max.ru"
                         ],
                         "privateKey": "$privatkey",
                         "minClientVer": "",
