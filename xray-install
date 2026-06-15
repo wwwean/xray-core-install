@@ -139,6 +139,45 @@ function installXray() {
         ],
         "outbounds": [
             {
+                "tag": "proxy",
+                "protocol": "vless",
+                "settings": {
+                    "vnext": [
+                        {
+                            "address": "158.160.162.164",
+                            "port": 443,
+                            "users": [
+                                {
+                                    "id": "UUID_ДЛЯ_СВЯЗИ_МЕЖДУ_СЕРВЕРАМИ",
+                                    "flow": "xtls-rprx-vision",
+                                    "encryption": "none"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "streamSettings": {
+                    "network": "xhttp",
+                    "security": "reality",
+                    "realitySettings": {
+                        "fingerprint": "firefox",
+                        "maxTimeDiff": 0,
+                        "serverName": "avito.ru",
+                        "privateKey": "$privatkey",
+                        "shortIds": [
+                            "$shortsid"
+                        ]
+                    },
+                    "xhttpSettings": {
+                        "path": "/api/v2/data",
+                        "mode": "auto",
+                        "extra": {
+                            "xPaddingBytes": "100-1000"
+                        }
+                    }
+                }
+            },
+            {
                 "protocol": "freedom",
                 "tag": "direct"
             },
@@ -269,7 +308,7 @@ function addUser() {
         username=$(jq --argjson index "$index" -r '.inbounds[0].settings.clients[$index].email' /usr/local/etc/xray/config.json)
         sni=$(jq -r '.inbounds[0].streamSettings.realitySettings.serverNames[0]' /usr/local/etc/xray/config.json)
         ip=$(curl -4 -s icanhazip.com)
-        link="$protocol://$uuid@$ip:$port?security=reality&sni=$sni&fp=firefox&pbk=$pbk&sid=$sid&spx=%2&type=xhttp&path=%2Fapi%2Fv2%2Fdata&mode=auto&xPaddingBytes=100-1000&flow=xtls-rprx-vision&encryption=$encryption_key#$username"
+        link="$protocol://$uuid@$ip:$port?security=reality&sni=$sni&fp=firefox&pbk=$pbk&sid=$sid&spx=%2F&type=xhttp&path=%2Fapi%2Fv2%2Fdata&mode=auto&extra=%7B%22xPaddingBytes%22%3A%22100-1000%22%7D&flow=xtls-rprx-vision&encryption=$encryption_key#$username"
         echo ""
         echo "Ссылка для подключения":
         echo "$link"
@@ -333,7 +372,7 @@ function listUser() {
     username=$(jq --argjson index "$index" -r '.inbounds[0].settings.clients[$index].email' /usr/local/etc/xray/config.json)
     sni=$(jq -r '.inbounds[0].streamSettings.realitySettings.serverNames[0]' /usr/local/etc/xray/config.json)
     ip=$(curl -4 -s icanhazip.com)
-    link="$protocol://$uuid@$ip:$port?security=reality&sni=$sni&fp=firefox&pbk=$pbk&sid=$sid&spx=%2&type=xhttp&path=%2Fapi%2Fv2%2Fdata&mode=auto&xPaddingBytes=100-1000&flow=xtls-rprx-vision&encryption=$encryption_key#$username"
+    link="$protocol://$uuid@$ip:$port?security=reality&sni=$sni&fp=firefox&pbk=$pbk&sid=$sid&spx=%2F&type=xhttp&path=%2Fapi%2Fv2%2Fdata&mode=auto&xPaddingBytes=100-1000&flow=xtls-rprx-vision&encryption=$encryption_key#$username"
     echo ""
     echo "Ссылка для подключения":
     echo "$link"
